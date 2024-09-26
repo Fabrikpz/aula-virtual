@@ -13,29 +13,30 @@ def home():
 
 @main.route("/register", methods=['GET', 'POST'])
 def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('main.home'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data, password=form.password.data)
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)  # Hasheamos la contraseña aquí
         db.session.add(user)
         db.session.commit()
-        flash('Tu cuenta ha sido creada, ¡ahora puedes iniciar sesión!', 'success')
+        flash('¡Tu cuenta ha sido creada!', 'success')
         return redirect(url_for('main.login'))
     return render_template('register.html', title='Registro', form=form)
 
-@main.route('/login', methods=['GET', 'POST'])
+@main.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
-            login_user(user)
-            flash('Inicio de sesión exitoso.', 'success')
+            login_user(user)  # Agrega esta línea para autenticar al usuario
+            flash('¡Inicio de sesión exitoso!', 'success')
             return redirect(url_for('main.home'))
         else:
-            flash('Inicio de sesión fallido. Por favor verifica tus credenciales.', 'danger')
-    return render_template('login.html', form=form)
+            flash('Inicio de sesión fallido. Revisa tus credenciales', 'danger')
+    return render_template('login.html', title='Login', form=form)
+
+
 
 @main.route("/logout")
 @login_required
