@@ -1,0 +1,53 @@
+body {
+    background-color: #f8f9fa; /* Color de fondo */
+}
+
+.navbar {
+    background-color: #343a40; /* Color de fondo del navbar */
+    border-bottom: 2px solid #007bff; /* Borde inferior */
+}
+
+.navbar-brand {
+    color: #ffffff !important; /* Color del texto de la marca */
+    font-weight: bold;
+}
+
+.nav-link {
+    color: #ffffff !important; /* Color de los enlaces */
+    transition: color 0.3s; /* Transición suave para el color */
+}
+
+.nav-link:hover {
+    color: #007bff !important; /* Color al pasar el mouse */
+}
+
+.btn {
+    border-radius: 20px; /* Bordes redondeados para botones */
+}
+
+.btn-primary {
+    background-color: #007bff; /* Color de fondo del botón de inicio de sesión */
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3; /* Color al pasar el mouse */
+}
+
+.btn-secondary {
+    background-color: #6c757d; /* Color de fondo del botón de registro */
+    border: none;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268; /* Color al pasar el mouse */
+}
+
+.btn-danger {
+    background-color: #dc3545; /* Color de fondo del botón de cerrar sesión */
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #c82333; /* Color al pasar el mouse */
+}
