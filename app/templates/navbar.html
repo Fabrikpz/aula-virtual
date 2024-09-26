@@ -1,0 +1,23 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="{{ url_for('main.home') }}">Home</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('main.crear_cursos') }}">Crear Cursos</a>
+            </li>
+        </ul>
+        <div class="navbar-nav">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.logout') }}" class="btn btn-outline-danger">Cerrar Sesión</a>
+            {% else %}
+            <a href="{{ url_for('main.login') }}" class="btn btn-outline-primary">Iniciar Sesión</a>
+            <a href="{{ url_for('main.register') }}" class="btn btn-outline-secondary">Registrarse</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>

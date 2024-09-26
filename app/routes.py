@@ -36,10 +36,13 @@ def login():
             flash('Inicio de sesión fallido. Revisa tus credenciales', 'danger')
     return render_template('login.html', title='Login', form=form)
 
-
-
 @main.route("/logout")
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('main.home'))
+
+@main.route("/crear_cursos")
+@login_required
+def crear_cursos():
+    return render_template("cursos.html")
