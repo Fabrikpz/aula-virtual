@@ -11,8 +11,12 @@ main = Blueprint('main', __name__)
 
 @main.route("/")
 def home():
-    cursos = Curso.query.all()
+    if current_user.is_authenticated:
+        cursos = Curso.query.filter_by(user_id=current_user.id).all()
+    else:
+        cursos = []
     return render_template("home.html", cursos=cursos)
+
 
 @main.route("/register", methods=['GET', 'POST'])
 def register():
@@ -46,6 +50,7 @@ def logout():
     return redirect(url_for('main.home'))
 
 @main.route('/crear_cursos', methods=['GET', 'POST']) 
+@login_required
 def crear_cursos():
     if request.method == 'POST':
         curso_nombre = request.form.get('curso_nombre')
@@ -55,23 +60,29 @@ def crear_cursos():
             flash('Todos los campos son obligatorios', 'error')
             return redirect(url_for('main.crear_cursos'))
 
-        nuevo_curso = Curso(nombre=curso_nombre, descripcion=curso_descripcion)
+        nuevo_curso = Curso(nombre=curso_nombre, descripcion=curso_descripcion, user_id=current_user.id)
         db.session.add(nuevo_curso)
         db.session.commit()
-        
+
         flash('Curso creado exitosamente', 'success')
         return redirect(url_for('main.home'))
 
     return render_template('cursos.html')
 
 @main.route('/eliminar_curso/<int:curso_id>', methods=['POST'])
-@login_required 
+@login_required
 def eliminar_curso(curso_id):
-    curso = Curso.query.get_or_404(curso_id) 
-    db.session.delete(curso) 
-    db.session.commit()  
+    curso = Curso.query.get_or_404(curso_id)
+    if curso.user_id != current_user.id:
+        flash('No tienes permiso para eliminar este curso', 'danger')
+        return redirect(url_for('main.home'))
+    
+    db.session.delete(curso)
+    db.session.commit()
     flash('Curso eliminado exitosamente', 'success')
-    return redirect(url_for('main.home')) 
+    return redirect(url_for('main.home'))
+
+
 
 @main.route('/actualizar_curso/<int:curso_id>', methods=['GET', 'POST'])
 @login_required  
