@@ -13,6 +13,38 @@
     
     <div class="container mt-5">
         <h1>Aula.</h1>
+
+        <!-- Muestra los cursos en una tabla -->
+        <h2 class="mt-4">Todos los Cursos</h2>
+        <table class="table table-bordered mt-3">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Acciones</th> <!-- Columna para las acciones -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for curso in cursos %}
+                <tr>
+                    <td>{{ curso.nombre }}</td>
+                    <td>{{ curso.descripcion }}</td>
+                    <td>
+                        <!-- Formulario para eliminar el curso -->
+                        <form action="{{ url_for('main.eliminar_curso', curso_id=curso.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                        <!-- Botón para actualizar el curso -->
+                        <a href="{{ url_for('main.actualizar_curso', curso_id=curso.id) }}" class="btn btn-warning btn-sm">Actualizar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if not cursos %}
+            <p>No hay cursos disponibles.</p>
+        {% endif %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
