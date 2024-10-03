@@ -12,9 +12,10 @@ main = Blueprint('main', __name__)
 @main.route("/")
 def home():
     if current_user.is_authenticated:
-        cursos = Curso.query.filter_by(user_id=current_user.id).all()
+        cursos = Curso.query.filter((Curso.user_id == current_user.id) | (Curso.usuarios.any(User.id == current_user.id))).all()
     else:
         cursos = []
+
     return render_template("home.html", cursos=cursos)
 
 
@@ -60,7 +61,7 @@ def crear_cursos():
             flash('Todos los campos son obligatorios', 'error')
             return redirect(url_for('main.crear_cursos'))
 
-        nuevo_curso = Curso(nombre=curso_nombre, descripcion=curso_descripcion, user_id=current_user.id)
+        nuevo_curso = Curso(nombre=curso_nombre, descripcion=curso_descripcion, user_id=current_user.id)  # user_id asignado correctamente
         db.session.add(nuevo_curso)
         db.session.commit()
 
@@ -82,8 +83,6 @@ def eliminar_curso(curso_id):
     flash('Curso eliminado exitosamente', 'success')
     return redirect(url_for('main.home'))
 
-
-
 @main.route('/actualizar_curso/<int:curso_id>', methods=['GET', 'POST'])
 @login_required  
 def actualizar_curso(curso_id):
@@ -102,3 +101,31 @@ def actualizar_curso(curso_id):
         return redirect(url_for('main.home'))
 
     return render_template('actualizar_curso.html', curso=curso)
+
+@main.route('/asignar_estudiante/<int:curso_id>', methods=['GET', 'POST'])
+@login_required
+def asignar_estudiante(curso_id):
+    curso = Curso.query.get_or_404(curso_id)
+
+    if request.method == 'POST':
+        email_estudiante = request.form.get('email_estudiante')
+        usuario = User.query.filter_by(email=email_estudiante).first()
+
+        if usuario:
+            if usuario not in curso.usuarios:  # Verifica si ya está asignado
+                curso.usuarios.append(usuario)
+                db.session.commit()
+                flash(f'Usuario {usuario.username} asignado al curso.', 'success')
+            else:
+                flash('El usuario ya está asignado a este curso.', 'warning')
+            return redirect(url_for('main.home'))
+        else:
+            flash('Usuario no encontrado', 'danger')
+
+    return render_template('asignar_estudiante.html', curso=curso)
+
+@main.route("/profile/<username>")
+@login_required
+def profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    return render_template('profile.html', user=user)

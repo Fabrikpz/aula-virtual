@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +9,10 @@
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
 </head>
+
 <body>
-    {% include 'navbar.html' %} 
-    
+    {% include 'navbar.html' %}
+
     <div class="container mt-5">
         <h1>Aula.</h1>
 
@@ -20,6 +22,7 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Descripción</th>
+                    <th>Estudiantes Asignados</th> <!-- Nueva columna para estudiantes -->
                     <th>Acciones</th> <!-- Columna para las acciones -->
                 </tr>
             </thead>
@@ -29,12 +32,28 @@
                     <td>{{ curso.nombre }}</td>
                     <td>{{ curso.descripcion }}</td>
                     <td>
+                        {% if curso.usuarios %}  <!-- Verifica si hay usuarios asignados -->
+                            <ul>
+                                {% for usuario in curso.usuarios %}  <!-- Itera sobre los usuarios -->
+                                    <li>{{ usuario.username }} ({{ usuario.email }})</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            No hay estudiantes asignados.
+                        {% endif %}
+                    </td>
+                    <td>
                         <!-- Formulario para eliminar el curso -->
-                        <form action="{{ url_for('main.eliminar_curso', curso_id=curso.id) }}" method="POST" style="display:inline;">
+                        <form action="{{ url_for('main.eliminar_curso', curso_id=curso.id) }}" method="POST"
+                            style="display:inline;">
                             <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                         </form>
                         <!-- Botón para actualizar el curso -->
-                        <a href="{{ url_for('main.actualizar_curso', curso_id=curso.id) }}" class="btn btn-warning btn-sm">Actualizar</a>
+                        <a href="{{ url_for('main.actualizar_curso', curso_id=curso.id) }}"
+                            class="btn btn-warning btn-sm">Actualizar</a>
+                        <!-- Botón para asignar estudiantes -->
+                        <a href="{{ url_for('main.asignar_estudiante', curso_id=curso.id) }}"
+                            class="btn btn-primary btn-sm">Asignar Estudiante</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -42,7 +61,7 @@
         </table>
 
         {% if not cursos %}
-            <p>No hay cursos disponibles.</p>
+        <p>No hay cursos disponibles.</p>
         {% endif %}
     </div>
 
@@ -50,4 +69,5 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
 </body>
+
 </html>
