@@ -1,0 +1,18 @@
+<form method="POST" action="">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.titulo.label }} {{ form.titulo(size=32) }}
+        {% for error in form.titulo.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.contenido.label }} {{ form.contenido(rows=5) }}
+        {% for error in form.contenido.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.submit() }}
+    </div>
+</form>

@@ -1,0 +1,19 @@
+<h1>Agregar Contenido a {{ curso.nombre }}</h1>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.titulo.label }}<br>
+        {{ form.titulo(size=32) }}<br>
+        {% for error in form.titulo.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.texto.label }}<br>
+        {{ form.texto(rows=5) }}<br>
+        {% for error in form.texto.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>{{ form.submit() }}</p>
+</form>

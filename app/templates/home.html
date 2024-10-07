@@ -22,8 +22,9 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Descripción</th>
-                    <th>Estudiantes Asignados</th> <!-- Nueva columna para estudiantes -->
-                    <th>Acciones</th> <!-- Columna para las acciones -->
+                    <th>Profesor</th>
+                    <th>Estudiantes Asignados</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -31,10 +32,11 @@
                 <tr>
                     <td>{{ curso.nombre }}</td>
                     <td>{{ curso.descripcion }}</td>
+                    <td>{{ curso.creador.username }}</td>
                     <td>
-                        {% if curso.usuarios %}  <!-- Verifica si hay usuarios asignados -->
+                        {% if curso.usuarios %}  
                             <ul>
-                                {% for usuario in curso.usuarios %}  <!-- Itera sobre los usuarios -->
+                                {% for usuario in curso.usuarios %}  
                                     <li>{{ usuario.username }} ({{ usuario.email }})</li>
                                 {% endfor %}
                             </ul>
@@ -43,17 +45,22 @@
                         {% endif %}
                     </td>
                     <td>
-                        <!-- Formulario para eliminar el curso -->
-                        <form action="{{ url_for('main.eliminar_curso', curso_id=curso.id) }}" method="POST"
-                            style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                        </form>
-                        <!-- Botón para actualizar el curso -->
-                        <a href="{{ url_for('main.actualizar_curso', curso_id=curso.id) }}"
-                            class="btn btn-warning btn-sm">Actualizar</a>
-                        <!-- Botón para asignar estudiantes -->
-                        <a href="{{ url_for('main.asignar_estudiante', curso_id=curso.id) }}"
-                            class="btn btn-primary btn-sm">Asignar Estudiante</a>
+                        {% if current_user.id == curso.user_id %} <!-- Verifica si el usuario actual es el creador -->
+                            <!-- Formulario para eliminar el curso -->
+                            <form action="{{ url_for('main.eliminar_curso', curso_id=curso.id) }}" method="POST"
+                                style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                            <!-- Botón para actualizar el curso -->
+                            <a href="{{ url_for('main.actualizar_curso', curso_id=curso.id) }}"
+                                class="btn btn-warning btn-sm">Actualizar</a>
+                            <!-- Botón para asignar estudiantes -->
+                            <a href="{{ url_for('main.asignar_estudiante', curso_id=curso.id) }}"
+                                class="btn btn-primary btn-sm">Asignar Estudiante</a>
+                        {% endif %}
+                        <!-- Mostrar el botón para entrar al curso para el profesor y los estudiantes -->
+                        <a href="{{ url_for('main.curso', curso_id=curso.id) }}" 
+                            class="btn btn-primary btn-sm">Entrar al curso</a>
                     </td>
                 </tr>
                 {% endfor %}

@@ -1,10 +1,9 @@
 from flask import render_template, redirect, url_for, flash, request
 from app import db
-from app.forms import RegistrationForm, LoginForm
-from app.models import User
+from app.forms import RegistrationForm, LoginForm, ContenidoForm, ExamenForm
+from app.models import User,  Curso, Contenido, Examen
 from flask_login import login_user, current_user, logout_user, login_required
 from flask import Blueprint
-from .models import Curso
 
 
 main = Blueprint('main', __name__)
@@ -12,11 +11,15 @@ main = Blueprint('main', __name__)
 @main.route("/")
 def home():
     if current_user.is_authenticated:
-        cursos = Curso.query.filter((Curso.user_id == current_user.id) | (Curso.usuarios.any(User.id == current_user.id))).all()
+        cursos = Curso.query.filter(
+            (Curso.creador.has(id=current_user.id)) | 
+            (Curso.usuarios.any(User.id == current_user.id))
+        ).all()
     else:
         cursos = []
 
     return render_template("home.html", cursos=cursos)
+
 
 
 @main.route("/register", methods=['GET', 'POST'])
@@ -50,7 +53,7 @@ def logout():
     logout_user()
     return redirect(url_for('main.home'))
 
-@main.route('/crear_cursos', methods=['GET', 'POST']) 
+@main.route('/crear_cursos', methods=['GET', 'POST'])
 @login_required
 def crear_cursos():
     if request.method == 'POST':
@@ -61,7 +64,8 @@ def crear_cursos():
             flash('Todos los campos son obligatorios', 'error')
             return redirect(url_for('main.crear_cursos'))
 
-        nuevo_curso = Curso(nombre=curso_nombre, descripcion=curso_descripcion, user_id=current_user.id)  # user_id asignado correctamente
+        nuevo_curso = Curso(nombre=curso_nombre, descripcion=curso_descripcion, user_id=current_user.id)
+        
         db.session.add(nuevo_curso)
         db.session.commit()
 
@@ -69,6 +73,7 @@ def crear_cursos():
         return redirect(url_for('main.home'))
 
     return render_template('cursos.html')
+
 
 @main.route('/eliminar_curso/<int:curso_id>', methods=['POST'])
 @login_required
@@ -112,20 +117,90 @@ def asignar_estudiante(curso_id):
         usuario = User.query.filter_by(email=email_estudiante).first()
 
         if usuario:
-            if usuario not in curso.usuarios:  # Verifica si ya está asignado
+            if usuario not in curso.usuarios:
                 curso.usuarios.append(usuario)
                 db.session.commit()
-                flash(f'Usuario {usuario.username} asignado al curso.', 'success')
+                flash('Estudiante asignado exitosamente', 'success')
+                return redirect(url_for('main.home'))
             else:
                 flash('El usuario ya está asignado a este curso.', 'warning')
-            return redirect(url_for('main.home'))
         else:
             flash('Usuario no encontrado', 'danger')
 
+        return redirect(url_for('main.asignar_estudiante', curso_id=curso_id))
+
     return render_template('asignar_estudiante.html', curso=curso)
+
 
 @main.route("/profile/<username>")
 @login_required
 def profile(username):
     user = User.query.filter_by(username=username).first_or_404()
     return render_template('profile.html', user=user)
+
+@main.route('/curso/<int:curso_id>', methods=['GET'])
+@login_required
+def curso(curso_id):
+    curso = Curso.query.get_or_404(curso_id)
+
+    if current_user not in curso.usuarios:
+        flash('No tienes acceso a este curso', 'danger')
+        return redirect(url_for('main.home'))
+
+    return render_template('curso.html', curso=curso)
+
+@main.route('/agregar_contenido/<int:curso_id>', methods=['GET', 'POST'])
+@login_required
+def agregar_contenido(curso_id):
+    form = ContenidoForm()
+    curso = Curso.query.get_or_404(curso_id)
+
+    if form.validate_on_submit():
+        nuevo_contenido = Contenido(titulo=form.titulo.data, texto=form.texto.data, curso_id=curso.id)
+        db.session.add(nuevo_contenido)
+        db.session.commit()
+        flash('Contenido agregado exitosamente', 'success')
+        return redirect(url_for('main.home'))
+
+    return render_template('agregar_contenido.html', form=form, curso=curso)
+
+
+@main.route('/agregar_examen/<int:curso_id>', methods=['GET', 'POST'])
+@login_required
+def agregar_examen(curso_id):
+    curso = Curso.query.get_or_404(curso_id)
+    form = ExamenForm()
+
+    if form.validate_on_submit():
+        nuevo_examen = Examen(titulo=form.titulo.data, contenido=form.contenido.data, curso_id=curso.id)
+        db.session.add(nuevo_examen)
+        db.session.commit()
+        flash('Examen publicado exitosamente', 'success')
+        return redirect(url_for('main.home'))
+
+    return render_template('agregar_examen.html', form=form, curso=curso)
+
+@main.route('/asignar_notas/<int:curso_id>', methods=['GET', 'POST'])
+@login_required
+def asignar_notas(curso_id):
+    curso = Curso.query.get_or_404(curso_id)
+
+    if current_user.id != curso.user_id:
+        flash('No tienes permiso para asignar notas en este curso.', 'error')
+        return redirect(url_for('main.curso', curso_id=curso.id))
+
+    if request.method == 'POST':
+        for estudiante_id, nota in request.form.items():
+            examen = Examen.query.filter_by(curso_id=curso.id, estudiante_id=estudiante_id).first()
+            if examen:
+                examen.nota = nota  # Actualiza la nota si el examen ya existe
+            else:
+                nuevo_examen = Examen(titulo="Examen Asignado", nota=nota, curso_id=curso.id, estudiante_id=estudiante_id)
+                db.session.add(nuevo_examen)  # Agrega un nuevo examen
+
+        db.session.commit()
+        flash('Notas asignadas exitosamente', 'success')
+        return redirect(url_for('main.curso', curso_id=curso.id))
+
+    estudiantes = curso.usuarios  # Asegúrate de que estás obteniendo la lista de estudiantes
+    return render_template('asignar_notas.html', curso=curso, estudiantes=estudiantes)
