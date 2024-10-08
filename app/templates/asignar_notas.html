@@ -19,29 +19,22 @@
             <thead>
                 <tr>
                     <th>Estudiante</th>
-                    <th>Examen</th>
                     <th>Nota</th>
                 </tr>
             </thead>
             <tbody>
                 {% for estudiante in estudiantes %}
-                    {% if estudiante.examenes|length > 0 %}
-                        {% for examen in estudiante.examenes %}
-                        <tr>
-                            {% if loop.first %}
-                            <td rowspan="{{ estudiante.examenes|length }}">{{ estudiante.username }}</td>
-                            {% endif %}
-                            <td>{{ examen.titulo }}</td>
-                            <td>
-                                <input type="number" name="nota_{{ estudiante.id }}_{{ examen.id }}" value="{{ examen.nota or '' }}" class="form-control" required>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                    <tr>
-                        <td colspan="3">No hay exámenes para este estudiante.</td>
-                    </tr>
-                    {% endif %}
+                <tr>
+                    <td>{{ estudiante.username }}</td>
+                    <td>
+                        {% set nota = estudiante.notas | first %}
+                        <input type="number" name="nota_{{ estudiante.id }}" value="{{ nota.valor if nota else '' }}" class="form-control" required>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2">No hay estudiantes inscritos en este curso.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>

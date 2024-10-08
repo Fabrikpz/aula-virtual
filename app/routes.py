@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request
 from app import db
 from app.forms import RegistrationForm, LoginForm, ContenidoForm, ExamenForm
-from app.models import User,  Curso, Contenido, Examen
+from app.models import User,  Curso, Contenido, Examen, Nota
 from flask_login import login_user, current_user, logout_user, login_required
 from flask import Blueprint
 
@@ -188,47 +188,34 @@ def agregar_examen(curso_id):
 def asignar_notas(curso_id):
     curso = Curso.query.get_or_404(curso_id)
 
-    # Verificar que el usuario tenga permiso para asignar notas
     if current_user.id != curso.user_id:
         flash('No tienes permiso para asignar notas en este curso.', 'error')
         return redirect(url_for('main.curso', curso_id=curso.id))
 
-    # Obtener los estudiantes inscritos en el curso
-    estudiantes = curso.usuarios  # Utiliza la relación para obtener estudiantes
+    estudiantes = curso.usuarios  # Obtener estudiantes del curso
+    for estudiante in estudiantes:
+        estudiante.notas = Nota.query.filter_by(estudiante_id=estudiante.id, curso_id=curso.id).all()
 
-    # Obtener los exámenes del curso
-    examenes = Examen.query.filter_by(curso_id=curso.id).all()
-
-    # Procesar la asignación de notas si se hace una solicitud POST
     if request.method == 'POST':
         for key in request.form:
             if key.startswith("nota_"):
-                _, est_id, ex_id = key.split("_")
-                nota = request.form[key]
-                
-                # Convertir nota a tipo flotante
-                try:
-                    nota = float(nota)
-                except ValueError:
-                    flash(f'La nota para el estudiante {est_id} y examen {ex_id} no es válida.', 'error')
-                    continue
-                
-                # Obtener el examen correspondiente
-                examen = Examen.query.filter_by(id=ex_id, estudiante_id=est_id).first()
-                if examen:
-                    examen.nota = nota  # Asignar la nota
+                est_id = key.split("_")[1]
+                nota_valor = request.form[key]
+                # Busca o crea una nota
+                nota_registro = Nota.query.filter_by(estudiante_id=est_id, curso_id=curso.id).first()
+                if nota_registro:
+                    # Actualiza la nota existente
+                    nota_registro.valor = nota_valor
                 else:
-                    flash(f'Examen no encontrado para el estudiante {est_id}.', 'error')
+                    # Crea una nueva nota
+                    nueva_nota = Nota(estudiante_id=est_id, curso_id=curso.id, valor=nota_valor)
+                    db.session.add(nueva_nota)
 
-        # Guardar cambios en la base de datos
         db.session.commit()
         flash('Notas asignadas exitosamente', 'success')
         return redirect(url_for('main.curso', curso_id=curso.id))
 
-    # Renderizar la plantilla con los datos del curso y estudiantes
-    return render_template('asignar_notas.html', curso=curso, estudiantes=estudiantes, examenes=examenes)
-
-
+    return render_template('asignar_notas.html', curso=curso, estudiantes=estudiantes)
 
 
 @main.route('/eliminar_examen/<int:curso_id>/<int:examen_id>', methods=['POST'])

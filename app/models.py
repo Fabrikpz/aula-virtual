@@ -77,8 +77,9 @@ class Examen(db.Model):
 class Nota(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     estudiante_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    examen_id = db.Column(db.Integer, db.ForeignKey('examen.id'), nullable=False)
+    curso_id = db.Column(db.Integer, db.ForeignKey('curso.id'), nullable=False)
     valor = db.Column(db.Float, nullable=False)
 
     estudiante = db.relationship('User', backref='notas')
-    examen = db.relationship('Examen', backref='notas')  # Relación inversa con Examen
+    curso = db.relationship('Curso', backref='notas')
+
