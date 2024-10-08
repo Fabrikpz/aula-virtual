@@ -7,20 +7,18 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
-# Tabla intermedia para la relación muchos a muchos entre usuarios y cursos
 usuario_curso = db.Table('usuario_curso',
     db.Column('usuario_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('curso_id', db.Integer, db.ForeignKey('curso.id'), primary_key=True)
 )
 
 class User(db.Model, UserMixin):
-    __tablename__ = 'user'  # Nombre de la tabla
+    __tablename__ = 'user' 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255))
 
-    # Relación muchos a muchos con cursos
     cursos = db.relationship('Curso', secondary=usuario_curso, backref=db.backref('usuarios', lazy='dynamic'))
 
     def set_password(self, password):
@@ -30,7 +28,7 @@ class User(db.Model, UserMixin):
         return check_password_hash(self.password_hash, password)
 
 class Curso(db.Model):
-    __tablename__ = 'curso'  # Nombre correcto de la tabla
+    __tablename__ = 'curso'
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.String(200), nullable=False)
@@ -46,7 +44,7 @@ class Curso(db.Model):
             db.session.add(nuevo_contenido)
             db.session.commit()
             return True
-        return False  # No se permite agregar contenido si el usuario no es el creador
+        return False
 
     def agregar_examen(self, titulo, nota, user_id):
         if user_id == self.user_id:
@@ -54,7 +52,7 @@ class Curso(db.Model):
             db.session.add(nuevo_examen)
             db.session.commit()
             return True
-        return False  # No se permite agregar examen si el usuario no es el creador
+        return False
 
 class Contenido(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -66,13 +64,13 @@ class Contenido(db.Model):
     curso = db.relationship('Curso', backref='contenidos')
 
 class Examen(db.Model):
-    __tablename__ = 'examen'  # Cambia el nombre de la tabla a 'examen'
+    __tablename__ = 'examen'
     id = db.Column(db.Integer, primary_key=True)
-    contenido = db.Column(db.String(255), nullable=False)  # Asegúrate de que esto sea necesario
+    contenido = db.Column(db.String(255), nullable=False)
     titulo = db.Column(db.String(255), nullable=False)
     nota = db.Column(db.Float)
-    curso_id = db.Column(db.Integer, db.ForeignKey('curso.id'))  # Cambia a 'curso.id'
-    estudiante_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # Cambia a 'user.id'
+    curso_id = db.Column(db.Integer, db.ForeignKey('curso.id'))
+    estudiante_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 class Nota(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -82,4 +80,3 @@ class Nota(db.Model):
 
     estudiante = db.relationship('User', backref='notas')
     curso = db.relationship('Curso', backref='notas')
-

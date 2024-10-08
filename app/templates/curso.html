@@ -51,7 +51,7 @@
             <p>{{ contenido.texto }}</p>
         {% endfor %}
         
-        {% if current_user.id == curso.user_id %} <!-- Verifica si el usuario actual es el creador -->
+        {% if current_user.id == curso.user_id %}
             <a href="{{ url_for('main.agregar_contenido', curso_id=curso.id) }}" class="btn btn-primary">Agregar Contenido</a>
         {% endif %}
     </div>
@@ -81,7 +81,7 @@
         {% endfor %}
     </div>
 
-    {% if current_user.id == curso.user_id %} <!-- Verifica si el usuario actual es el creador -->
+    {% if current_user.id == curso.user_id %}
         <div class="mt-4">
             <a href="{{ url_for('main.agregar_examen', curso_id=curso.id) }}" class="btn btn-primary">Agregar examen</a>
         </div>

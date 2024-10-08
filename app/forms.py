@@ -14,7 +14,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Contraseña', validators=[DataRequired()])
     submit = SubmitField('Iniciar Sesión')
 
-class ContenidoForm(FlaskForm):  # Asegúrate de tener este formulario si lo usas
+class ContenidoForm(FlaskForm):  
     titulo = StringField('Título', validators=[DataRequired()])
     texto = TextAreaField('Texto', validators=[DataRequired()])
     submit = SubmitField('Agregar Contenido')

@@ -45,20 +45,18 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% if current_user.id == curso.user_id %} <!-- Verifica si el usuario actual es el creador -->
-                            <!-- Formulario para eliminar el curso -->
+                        {% if current_user.id == curso.user_id %} 
                             <form action="{{ url_for('main.eliminar_curso', curso_id=curso.id) }}" method="POST"
                                 style="display:inline;">
                                 <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                             </form>
-                            <!-- Botón para actualizar el curso -->
                             <a href="{{ url_for('main.actualizar_curso', curso_id=curso.id) }}"
                                 class="btn btn-warning btn-sm">Actualizar</a>
-                            <!-- Botón para asignar estudiantes -->
+                        
                             <a href="{{ url_for('main.asignar_estudiante', curso_id=curso.id) }}"
                                 class="btn btn-primary btn-sm">Asignar Estudiante</a>
                         {% endif %}
-                        <!-- Mostrar el botón para entrar al curso para el profesor y los estudiantes -->
+            
                         <a href="{{ url_for('main.curso', curso_id=curso.id) }}" 
                             class="btn btn-primary btn-sm">Entrar al curso</a>
                     </td>
