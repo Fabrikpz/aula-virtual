@@ -26,15 +26,33 @@
 {% endif %}
 
 <h2>Exámenes</h2>
-{% for examen in curso.examenes %}
-    <p>Contenido: {{ examen.contenido }}</p>
-    <p>{{ examen.titulo }} - Nota: {{ examen.nota }}</p>
+{% for examen in examenes %}
+    <div class="d-flex align-items-center mb-2">
+        <div class="me-auto">
+            <p>{{ examen.titulo }}</p>
+            <p>
+                {% for estudiante in curso.usuarios %}
+                    {% set nota = examen.notas | selectattr('estudiante_id', 'equalto', estudiante.id) | first %}
+                    <strong>{{ estudiante.username }}: {{ nota.nota if nota else 'Sin nota' }}</strong>
+                {% endfor %}
+            </p>
+        </div>
+        <div class="ms-2">
+            <a href="{{ url_for('main.asignar_notas', curso_id=curso.id) }}" class="btn btn-secondary">Asignar Nota</a>
+        </div>
+        <div class="ms-2">
+            <form action="{{ url_for('main.eliminar_examen', examen_id=examen.id, curso_id=curso.id) }}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-danger">Eliminar</button>
+            </form>
+        </div>
+    </div>
 {% endfor %}
 
+
 {% if current_user.id == curso.user_id %} <!-- Verifica si el usuario actual es el creador -->
-    <a href="{{ url_for('main.agregar_examen', curso_id=curso.id) }}" class="btn btn-primary">Agregar examen</a>
-    <a href="{{ url_for('main.asignar_notas', curso_id=curso.id) }}" class="btn btn-primary">Asignar notas</a>
-    
+    <div class="mt-4">
+        <a href="{{ url_for('main.agregar_examen', curso_id=curso.id) }}" class="btn btn-primary">Agregar examen</a>
+    </div>
 {% endif %}
 
 </body>

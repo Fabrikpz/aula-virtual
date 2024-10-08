@@ -143,11 +143,15 @@ def profile(username):
 def curso(curso_id):
     curso = Curso.query.get_or_404(curso_id)
 
-    if current_user not in curso.usuarios:
+    if current_user not in curso.usuarios and current_user.id != curso.user_id:
         flash('No tienes acceso a este curso', 'danger')
         return redirect(url_for('main.home'))
 
-    return render_template('curso.html', curso=curso)
+    # Obtener los exámenes del curso
+    examenes = Examen.query.filter_by(curso_id=curso.id).all()
+
+    return render_template('curso.html', curso=curso, examenes=examenes)
+
 
 @main.route('/agregar_contenido/<int:curso_id>', methods=['GET', 'POST'])
 @login_required
@@ -175,7 +179,6 @@ def agregar_examen(curso_id):
         nuevo_examen = Examen(titulo=form.titulo.data, contenido=form.contenido.data, curso_id=curso.id)
         db.session.add(nuevo_examen)
         db.session.commit()
-        flash('Examen publicado exitosamente', 'success')
         return redirect(url_for('main.home'))
 
     return render_template('agregar_examen.html', form=form, curso=curso)
@@ -185,22 +188,60 @@ def agregar_examen(curso_id):
 def asignar_notas(curso_id):
     curso = Curso.query.get_or_404(curso_id)
 
+    # Verificar que el usuario tenga permiso para asignar notas
     if current_user.id != curso.user_id:
         flash('No tienes permiso para asignar notas en este curso.', 'error')
         return redirect(url_for('main.curso', curso_id=curso.id))
 
-    if request.method == 'POST':
-        for estudiante_id, nota in request.form.items():
-            examen = Examen.query.filter_by(curso_id=curso.id, estudiante_id=estudiante_id).first()
-            if examen:
-                examen.nota = nota  # Actualiza la nota si el examen ya existe
-            else:
-                nuevo_examen = Examen(titulo="Examen Asignado", nota=nota, curso_id=curso.id, estudiante_id=estudiante_id)
-                db.session.add(nuevo_examen)  # Agrega un nuevo examen
+    # Obtener los estudiantes inscritos en el curso
+    estudiantes = curso.usuarios  # Utiliza la relación para obtener estudiantes
 
+    # Obtener los exámenes del curso
+    examenes = Examen.query.filter_by(curso_id=curso.id).all()
+
+    # Procesar la asignación de notas si se hace una solicitud POST
+    if request.method == 'POST':
+        for key in request.form:
+            if key.startswith("nota_"):
+                _, est_id, ex_id = key.split("_")
+                nota = request.form[key]
+                
+                # Convertir nota a tipo flotante
+                try:
+                    nota = float(nota)
+                except ValueError:
+                    flash(f'La nota para el estudiante {est_id} y examen {ex_id} no es válida.', 'error')
+                    continue
+                
+                # Obtener el examen correspondiente
+                examen = Examen.query.filter_by(id=ex_id, estudiante_id=est_id).first()
+                if examen:
+                    examen.nota = nota  # Asignar la nota
+                else:
+                    flash(f'Examen no encontrado para el estudiante {est_id}.', 'error')
+
+        # Guardar cambios en la base de datos
         db.session.commit()
         flash('Notas asignadas exitosamente', 'success')
         return redirect(url_for('main.curso', curso_id=curso.id))
 
-    estudiantes = curso.usuarios  # Asegúrate de que estás obteniendo la lista de estudiantes
-    return render_template('asignar_notas.html', curso=curso, estudiantes=estudiantes)
+    # Renderizar la plantilla con los datos del curso y estudiantes
+    return render_template('asignar_notas.html', curso=curso, estudiantes=estudiantes, examenes=examenes)
+
+
+
+
+@main.route('/eliminar_examen/<int:curso_id>/<int:examen_id>', methods=['POST'])
+@login_required
+def eliminar_examen(curso_id, examen_id):
+    curso = Curso.query.get_or_404(curso_id)
+    examen = Examen.query.get_or_404(examen_id)
+
+    if current_user.id != curso.user_id:
+        flash('No tienes permiso para eliminar este examen.', 'danger')
+        return redirect(url_for('main.curso', curso_id=curso.id))
+
+    db.session.delete(examen)
+    db.session.commit()
+    flash('Examen eliminado exitosamente', 'success')
+    return redirect(url_for('main.curso', curso_id=curso.id))

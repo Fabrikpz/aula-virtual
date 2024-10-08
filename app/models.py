@@ -14,6 +14,7 @@ usuario_curso = db.Table('usuario_curso',
 )
 
 class User(db.Model, UserMixin):
+    __tablename__ = 'user'  # Nombre de la tabla
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -67,11 +68,10 @@ class Contenido(db.Model):
 class Examen(db.Model):
     __tablename__ = 'examen'  # Cambia el nombre de la tabla a 'examen'
     id = db.Column(db.Integer, primary_key=True)
-    contenido = db.Column(db.String(255))
-    titulo = db.Column(db.String(255))
+    contenido = db.Column(db.String(255), nullable=False)  # Asegúrate de que esto sea necesario
+    titulo = db.Column(db.String(255), nullable=False)
     nota = db.Column(db.Float)
     curso_id = db.Column(db.Integer, db.ForeignKey('curso.id'))  # Cambia a 'curso.id'
-
     estudiante_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # Cambia a 'user.id'
 
 class Nota(db.Model):
@@ -81,3 +81,4 @@ class Nota(db.Model):
     valor = db.Column(db.Float, nullable=False)
 
     estudiante = db.relationship('User', backref='notas')
+    examen = db.relationship('Examen', backref='notas')  # Relación inversa con Examen
